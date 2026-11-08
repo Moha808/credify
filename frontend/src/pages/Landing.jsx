@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Zap, BarChart3, ChevronRight, Lock } from 'lucide-react';
+import dashboardPreviewImg from '../assets/dashboard-preview.jpg';
 
 const Landing = () => {
   return (
@@ -46,30 +47,21 @@ const Landing = () => {
           </div>
           
           <div className="relative z-10 flex items-center justify-center">
-            <div className="w-full max-w-lg bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-2xl backdrop-blur-sm">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Sample Evaluation</span>
-                <span className="text-xs font-semibold text-green-400 bg-green-950/40 border border-green-800/40 px-2 py-0.5 rounded-full">
-                  Underwriter Approved
+            <div className="absolute inset-0 bg-blue-600/10 blur-[120px] rounded-full"></div>
+            <div className="relative z-20 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-md group hover:border-slate-700 transition-all duration-300">
+              <img 
+                src={dashboardPreviewImg} 
+                alt="Credify Credit Intelligence Dashboard Preview" 
+                className="w-full h-auto object-cover rounded-2xl shadow-2xl transform group-hover:scale-[1.01] transition-transform duration-300"
+              />
+              <div className="absolute bottom-3 left-3 right-3 p-3 bg-slate-950/85 backdrop-blur-md border border-slate-800/80 rounded-xl flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-white">Live Credit Intelligence Dashboard</p>
+                  <p className="text-[11px] text-slate-400">Underwriting queue & automated risk metrics</p>
+                </div>
+                <span className="text-[11px] font-semibold text-green-400 bg-green-950/60 border border-green-800/60 px-2.5 py-0.5 rounded-full">
+                  Operational
                 </span>
-              </div>
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Facility Principal:</span>
-                  <span className="font-mono font-semibold text-white">₦2,500,000</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Monthly Earnings:</span>
-                  <span className="font-mono font-semibold text-white">₦450,000</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Credit Track Record:</span>
-                  <span className="text-blue-400 font-semibold">Tier-1 Clean</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Algorithmic Confidence:</span>
-                  <span className="font-mono font-bold text-green-400">92.4%</span>
-                </div>
               </div>
             </div>
           </div>

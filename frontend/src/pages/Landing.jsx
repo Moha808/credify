@@ -48,21 +48,12 @@ const Landing = () => {
           
           <div className="relative z-10 flex items-center justify-center">
             <div className="absolute inset-0 bg-blue-600/10 blur-[120px] rounded-full"></div>
-            <div className="relative z-20 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-md group hover:border-slate-700 transition-all duration-300">
+            <div className="relative z-20 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md group hover:border-slate-700 transition-all duration-300">
               <img 
                 src={dashboardPreviewImg} 
                 alt="Credify Credit Intelligence Dashboard Preview" 
                 className="w-full h-auto object-cover rounded-2xl shadow-2xl transform group-hover:scale-[1.01] transition-transform duration-300"
               />
-              <div className="absolute bottom-3 left-3 right-3 p-3 bg-slate-950/85 backdrop-blur-md border border-slate-800/80 rounded-xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-white">Live Credit Intelligence Dashboard</p>
-                  <p className="text-[11px] text-slate-400">Underwriting queue & automated risk metrics</p>
-                </div>
-                <span className="text-[11px] font-semibold text-green-400 bg-green-950/60 border border-green-800/60 px-2.5 py-0.5 rounded-full">
-                  Operational
-                </span>
-              </div>
             </div>
           </div>
         </div>

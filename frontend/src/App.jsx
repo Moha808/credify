@@ -10,6 +10,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminLogin from './pages/AdminLogin';
 import ApplicationForm from './pages/ApplicationForm';
 import History from './pages/History';
 import AdminPanel from './pages/AdminPanel';
@@ -31,6 +32,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={<AdminLogin />} />
           
           {/* Footer Pages */}
           <Route path="/about" element={<About />} />

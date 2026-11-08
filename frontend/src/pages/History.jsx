@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/config';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { Search, Filter, Eye, CheckCircle, XCircle, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, ChevronDown, Loader2, Award, FileText } from 'lucide-react';
+import RecommendationLetterModal from '../components/RecommendationLetterModal';
+import OfficerReviewModal from '../components/OfficerReviewModal';
 
 const History = () => {
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
+  const [selectedLetterApp, setSelectedLetterApp] = useState(null);
+  const [selectedOfficerReviewApp, setSelectedOfficerReviewApp] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,103 +63,131 @@ const History = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
-          {currentUser?.role === 'applicant' ? 'My Application History' : 'All Applications'}
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          {currentUser?.role === 'applicant' ? 'My Application History' : 'All Loan Applications'}
         </h1>
-        <p className="text-slate-500 mt-1">
+        <p className="text-slate-500 mt-1 text-sm">
           {currentUser?.role === 'applicant'
-            ? 'Track the status of your previous loan applications.'
-            : 'Review and manage all loan applications in the system.'}
+            ? 'Track the underwriting status and review recommendation letters for your loan submissions.'
+            : 'Master list of all applicant entries, AI scores, and credit underwriter decisions.'}
         </p>
       </div>
 
       {/* Filters Bar */}
-      <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center shadow-sm">
         <div className="relative flex-1 w-full">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by name or ID..."
+            placeholder="Search by applicant name or reference ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all text-sm"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
           />
         </div>
         <div className="relative">
-          <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Filter size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all text-sm appearance-none cursor-pointer"
+            className="pl-8 pr-8 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer"
           >
-            <option value="All">All Status</option>
+            <option value="All">All Statuses</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
           </select>
-          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
       </div>
 
       {/* Applications Table */}
-      <div className="glass-card overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs min-w-[700px]">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">ID</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Applicant</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Income</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Loan ($K)</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Area</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Date</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Status</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">Actions</th>
+              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-slate-500 uppercase tracking-wider font-semibold">
+                <th className="text-left py-3.5 px-4">Ref ID</th>
+                <th className="text-left py-3.5 px-4">Applicant</th>
+                <th className="text-left py-3.5 px-4">Income (₦/mo)</th>
+                <th className="text-left py-3.5 px-4">Loan (₦)</th>
+                <th className="text-left py-3.5 px-4">AI Score</th>
+                <th className="text-left py-3.5 px-4">Date</th>
+                <th className="text-left py-3.5 px-4">Status</th>
+                <th className="text-left py-3.5 px-4">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-12 text-slate-500">
-                    <Loader2 className="animate-spin mx-auto mb-2" size={24} />
-                    <p>Loading applications...</p>
+                  <td colSpan="8" className="text-center py-10 text-slate-400">
+                    <Loader2 className="animate-spin mx-auto mb-2 text-blue-600" size={20} />
+                    Loading applications...
                   </td>
                 </tr>
               ) : filteredApps.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-12 text-slate-500 dark:text-slate-400">
-                    <p className="text-lg font-medium">No applications found</p>
-                    <p className="text-sm mt-1">Submit a loan application to see it here.</p>
+                  <td colSpan="8" className="text-center py-10 text-slate-400">
+                    No matching records found.
                   </td>
                 </tr>
               ) : (
                 filteredApps.map((app) => (
-                  <tr key={app.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 px-5 font-mono text-xs text-slate-600 dark:text-slate-300">{app.id.substring(0, 8)}...</td>
-                    <td className="py-3.5 px-5 font-medium text-slate-800 dark:text-white">{app.applicant || 'N/A'}</td>
-                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300">${Number(app.ApplicantIncome || app.income || 0).toLocaleString()}</td>
-                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300">${app.LoanAmount || app.loanAmount || 'N/A'}K</td>
-                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300">{app.Property_Area || app.area || 'N/A'}</td>
-                    <td className="py-3.5 px-5 text-slate-500 dark:text-slate-400">{app.date || 'N/A'}</td>
-                    <td className="py-3.5 px-5">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+                  <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-4 font-mono text-slate-500">{app.id.substring(0, 8)}...</td>
+                    <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">{app.applicant || 'N/A'}</td>
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono">
+                      ₦{Number(app.ApplicantIncome || 0).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 font-mono font-medium text-slate-900 dark:text-white">
+                      ₦{(Number(app.LoanAmount || 0) * 1000).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                        {app.confidence ? `${app.confidence}%` : 'N/A'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-500">{app.date || 'N/A'}</td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
                         ${app.status === 'Approved'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                         }`}>
-                        {app.status === 'Approved' ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                        {app.status === 'Approved' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                         {app.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-5">
-                      <button
-                        onClick={() => setSelectedApp(app)}
-                        className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-                        title="View Details"
-                      >
-                        <Eye size={18} />
-                      </button>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedApp(app)}
+                          className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="View Full Profile Details"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        
+                        {/* Recommendation Letter Action */}
+                        {app.recommendationLetter ? (
+                          <button
+                            onClick={() => setSelectedLetterApp(app)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg text-[11px] font-medium transition-colors"
+                            title="View Official Recommendation Letter"
+                          >
+                            <Award size={12} /> Letter
+                          </button>
+                        ) : currentUser.role === 'officer' && app.status === 'Approved' ? (
+                          <button
+                            onClick={() => setSelectedOfficerReviewApp(app)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 hover:bg-green-100 rounded-lg text-[11px] font-medium transition-colors"
+                            title="Generate Recommendation Letter"
+                          >
+                            <FileText size={12} /> Issue
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -167,65 +199,91 @@ const History = () => {
 
       {/* Detail Modal */}
       {selectedApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Application Details</h2>
-              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 max-w-lg w-full">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Application Record Details</h2>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
                 ${selectedApp.status === 'Approved'
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                 }`}>
-                {selectedApp.status === 'Approved' ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                {selectedApp.status === 'Approved' ? <CheckCircle size={12} /> : <XCircle size={12} />}
                 {selectedApp.status}
               </span>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Application ID</p>
-                  <p className="font-mono font-medium text-slate-800 dark:text-white text-sm">{selectedApp.id.substring(0, 12)}...</p>
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">Application ID</p>
+                  <p className="font-mono font-medium text-slate-900 dark:text-white mt-0.5">{selectedApp.id.substring(0, 12)}...</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Applicant</p>
-                  <p className="font-medium text-slate-800 dark:text-white">{selectedApp.applicant || 'N/A'}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">Applicant Name</p>
+                  <p className="font-semibold text-slate-900 dark:text-white mt-0.5">{selectedApp.applicant || 'N/A'}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Gender</p>
-                  <p className="font-medium text-slate-800 dark:text-white">{selectedApp.Gender || selectedApp.gender || 'N/A'}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">Monthly Income</p>
+                  <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5">
+                    ₦{Number(selectedApp.ApplicantIncome || 0).toLocaleString()}
+                  </p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Married</p>
-                  <p className="font-medium text-slate-800 dark:text-white">{selectedApp.Married || selectedApp.married || 'N/A'}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">Requested Principal</p>
+                  <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5">
+                    ₦{(Number(selectedApp.LoanAmount || 0) * 1000).toLocaleString()}
+                  </p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Monthly Income</p>
-                  <p className="font-medium text-slate-800 dark:text-white">${Number(selectedApp.ApplicantIncome || selectedApp.income || 0).toLocaleString()}</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">Property Area</p>
+                  <p className="font-medium text-slate-900 dark:text-white mt-0.5">{selectedApp.Property_Area || 'Urban'}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Loan Amount</p>
-                  <p className="font-medium text-slate-800 dark:text-white">${selectedApp.LoanAmount || selectedApp.loanAmount || 'N/A'}K</p>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Property Area</p>
-                  <p className="font-medium text-slate-800 dark:text-white">{selectedApp.Property_Area || selectedApp.area || 'N/A'}</p>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">AI Confidence</p>
-                  <p className="font-medium text-blue-500">{selectedApp.confidence || 'N/A'}%</p>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[11px] text-slate-400 uppercase">AI Confidence Score</p>
+                  <p className="font-mono font-bold text-blue-600 dark:text-blue-400 mt-0.5">{selectedApp.confidence || 'N/A'}%</p>
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={() => setSelectedApp(null)}
-              className="w-full mt-6 px-6 py-3 bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-medium rounded-xl transition-colors"
-            >
-              Close
-            </button>
+            <div className="mt-6 flex gap-2">
+              {selectedApp.recommendationLetter && (
+                <button
+                  onClick={() => {
+                    setSelectedLetterApp(selectedApp);
+                    setSelectedApp(null);
+                  }}
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <Award size={14} /> View Recommendation Letter
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Recommendation Letter Modal */}
+      {selectedLetterApp && (
+        <RecommendationLetterModal
+          application={selectedLetterApp}
+          onClose={() => setSelectedLetterApp(null)}
+        />
+      )}
+
+      {/* Officer Review Modal */}
+      {selectedOfficerReviewApp && (
+        <OfficerReviewModal
+          application={selectedOfficerReviewApp}
+          officerName={currentUser?.name || 'Loan Officer'}
+          onClose={() => setSelectedOfficerReviewApp(null)}
+        />
       )}
     </div>
   );

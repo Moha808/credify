@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import {
   TrendingUp, TrendingDown, Users, CheckCircle,
   XCircle, Loader2, FileText, ArrowRight, Zap,
-  FileCheck, ShieldCheck, Clock, Award, CreditCard, Building2, Bell
+  FileCheck, ShieldCheck, Clock, Award, CreditCard, Building2, Bell, Download
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -128,10 +128,10 @@ const ApplicantDashboard = ({ currentUser, applications, loading }) => {
                   {app.recommendationLetter ? (
                     <button
                       onClick={() => setSelectedLetterApp(app)}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
-                      title="View Official Recommendation Letter"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                      title="Download Official Recommendation Letter"
                     >
-                      <Award size={13} /> View Recommendation
+                      <Download size={13} /> Download Letter
                     </button>
                   ) : app.status === 'Approved' ? (
                     <span className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../firebase/config';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { ShieldCheck, X, Loader2, CheckCircle, FileText, AlertCircle } from 'lucide-react';
 
 const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) => {
@@ -52,6 +52,38 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
         status: 'Approved',
         recommendationLetter: letterData
       }, { merge: true });
+
+      // Create in-app notification for the applicant
+      try {
+        if (application.userId) {
+          await addDoc(collection(db, 'notifications'), {
+            recipientId: application.userId,
+            recipientRole: 'applicant',
+            type: 'letter_issued',
+            title: 'Official Recommendation Letter Ready',
+            message: `Your loan recommendation letter for ₦${Number(recommendedAmount).toLocaleString()} has been approved and issued by ${officerName || 'the Loan Officer'}. Click here to download.`,
+            applicationId: application.id,
+            read: false,
+            createdAt: new Date().toISOString(),
+            timestamp: serverTimestamp()
+          });
+        }
+
+        // Also notify administrators
+        await addDoc(collection(db, 'notifications'), {
+          recipientId: 'admin',
+          recipientRole: 'admin',
+          type: 'letter_issued_admin',
+          title: 'Loan Recommendation Issued',
+          message: `${officerName || 'Loan Officer'} issued recommendation letter for ${application.applicant || 'an applicant'} (₦${Number(recommendedAmount).toLocaleString()}).`,
+          applicationId: application.id,
+          read: false,
+          createdAt: new Date().toISOString(),
+          timestamp: serverTimestamp()
+        });
+      } catch (notifErr) {
+        console.warn('Could not post notification:', notifErr);
+      }
 
       if (onUpdated) onUpdated();
       onClose();

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/config';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { Search, Filter, Eye, CheckCircle, XCircle, ChevronDown, Loader2, Award, FileText } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, ChevronDown, Loader2, Award, FileText, Download } from 'lucide-react';
 import RecommendationLetterModal from '../components/RecommendationLetterModal';
 import OfficerReviewModal from '../components/OfficerReviewModal';
 
@@ -180,10 +180,10 @@ const History = () => {
                         {app.recommendationLetter ? (
                           <button
                             onClick={() => setSelectedLetterApp(app)}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg text-[11px] font-medium transition-colors"
-                            title="View Official Recommendation Letter"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 hover:bg-green-100 rounded-lg text-[11px] font-semibold transition-colors"
+                            title="Download Official Recommendation Letter"
                           >
-                            <Award size={12} /> Letter
+                            <Download size={12} /> Download
                           </button>
                         ) : currentUser.role === 'officer' && app.status === 'Approved' ? (
                           <button
@@ -260,9 +260,9 @@ const History = () => {
                     setSelectedLetterApp(selectedApp);
                     setSelectedApp(null);
                   }}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
+                  className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm"
                 >
-                  <Award size={14} /> View Recommendation Letter
+                  <Download size={14} /> Download Recommendation Letter
                 </button>
               )}
               <button

@@ -94,7 +94,7 @@ const ApplicationForm = () => {
       setConfidenceScore(confidence);
       
       // 2. Save the application and prediction to Firebase Firestore
-      await addDoc(collection(db, 'applications'), {
+      const docRef = await addDoc(collection(db, 'applications'), {
         ...data,
         applicant: currentUser.name,
         userId: currentUser.uid,
@@ -105,6 +105,27 @@ const ApplicationForm = () => {
         officerAction: 'Pending Review',
         recommendationLetter: null
       });
+
+      // 3. Create real-time notification for Loan Officers & Admins
+      try {
+        const rawLoan = Number(data.LoanAmount || 0);
+        const displayLoan = rawLoan > 50000 ? rawLoan : rawLoan * 1000;
+        await addDoc(collection(db, 'notifications'), {
+          recipientId: 'officer',
+          recipientRole: 'officer',
+          type: 'new_application',
+          title: 'New Loan Request Awaiting Review',
+          message: `${currentUser.name} submitted an application for ₦${displayLoan.toLocaleString()} (AI Status: ${status}, ${confidence}% confidence).`,
+          applicationId: docRef.id,
+          applicantName: currentUser.name,
+          applicantId: currentUser.uid,
+          read: false,
+          createdAt: new Date().toISOString(),
+          timestamp: serverTimestamp()
+        });
+      } catch (notifErr) {
+        console.warn('Could not post officer notification:', notifErr);
+      }
       
     } catch (error) {
       console.error('Error saving application:', error);

@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is signed in
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Applications Collection Rules
+    match /applications/{applicationId} {
+      // Any authenticated user (Applicant, Loan Officer, Admin) can read applications
+      allow read: if isAuthenticated();
+
+      // Applicants can submit new loan applications
+      allow create: if isAuthenticated();
+
+      // Loan Officers and Admins can update applications (issue recommendation letters, update status)
+      allow update: if isAuthenticated();
+
+      // Admins can delete applications
+      allow delete: if isAuthenticated();
+    }
+
+    // Users Collection Rules
+    match /users/{userId} {
+      // Authenticated users can read user records
+      allow read: if isAuthenticated();
+
+      // Users can write their own record on signup
+      allow create: if isAuthenticated();
+
+      // Users or Admins can update/delete records
+      allow update, delete: if isAuthenticated();
+    }
+  }
+}

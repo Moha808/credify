@@ -35,6 +35,13 @@ const StatCard = ({ title, value, icon: Icon, color, bgColor, trend, trendValue 
   </div>
 );
 
+const formatNaira = (val) => {
+  if (!val) return '0';
+  const n = Number(val);
+  if (isNaN(n)) return '0';
+  return (n > 50000 ? n : n * 1000).toLocaleString();
+};
+
 // ─── Applicant View ────────────────────────────────────────────────────────
 const ApplicantDashboard = ({ currentUser, applications, loading }) => {
   const [selectedLetterApp, setSelectedLetterApp] = useState(null);
@@ -97,7 +104,7 @@ const ApplicantDashboard = ({ currentUser, applications, loading }) => {
               <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 gap-3">
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white text-sm">
-                    ₦{app.LoanAmount ? `${Number(app.LoanAmount).toLocaleString()}K (₦${(Number(app.LoanAmount) * 1000).toLocaleString()})` : 'N/A'}
+                    ₦{formatNaira(app.LoanAmount)}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {app.date} · {app.Property_Area || 'Urban'} · Term: {app.Loan_Amount_Term || 24} mos
@@ -295,7 +302,7 @@ const OfficerDashboard = ({ currentUser, applications, loading }) => {
                       ₦{Number(app.ApplicantIncome || 0).toLocaleString()}
                     </td>
                     <td className="py-3 px-3 text-slate-900 dark:text-white font-mono font-medium">
-                      ₦{(Number(app.LoanAmount || 0) * 1000).toLocaleString()}
+                      ₦{formatNaira(app.LoanAmount)}
                     </td>
                     <td className="py-3 px-3">
                       <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">

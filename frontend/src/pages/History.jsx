@@ -6,6 +6,13 @@ import { Search, Filter, Eye, CheckCircle, XCircle, ChevronDown, Loader2, Award,
 import RecommendationLetterModal from '../components/RecommendationLetterModal';
 import OfficerReviewModal from '../components/OfficerReviewModal';
 
+const formatNaira = (val) => {
+  if (!val) return '0';
+  const n = Number(val);
+  if (isNaN(n)) return '0';
+  return (n > 50000 ? n : n * 1000).toLocaleString();
+};
+
 const History = () => {
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -141,7 +148,7 @@ const History = () => {
                       ₦{Number(app.ApplicantIncome || 0).toLocaleString()}
                     </td>
                     <td className="py-3 px-4 font-mono font-medium text-slate-900 dark:text-white">
-                      ₦{(Number(app.LoanAmount || 0) * 1000).toLocaleString()}
+                      ₦{formatNaira(app.LoanAmount || app.loanAmount)}
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
@@ -232,7 +239,7 @@ const History = () => {
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                   <p className="text-[11px] text-slate-400 uppercase">Requested Principal</p>
                   <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5">
-                    ₦{(Number(selectedApp.LoanAmount || 0) * 1000).toLocaleString()}
+                    ₦{formatNaira(selectedApp.LoanAmount || selectedApp.loanAmount)}
                   </p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">

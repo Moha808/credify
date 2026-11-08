@@ -6,6 +6,13 @@ import {
   XCircle, AlertTriangle, Database, Cpu, Loader2, Download, FileSpreadsheet
 } from 'lucide-react';
 
+const formatNaira = (val) => {
+  if (!val) return '0';
+  const n = Number(val);
+  if (isNaN(n)) return '0';
+  return (n > 50000 ? n : n * 1000).toLocaleString();
+};
+
 const AdminPanel = () => {
   const [applications, setApplications] = useState([]);
   const [users, setUsers] = useState([]);
@@ -283,7 +290,7 @@ const AdminPanel = () => {
                   <td className="py-3 px-4 font-mono text-slate-500">{app.id.substring(0, 8)}...</td>
                   <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">{app.applicant || 'N/A'}</td>
                   <td className="py-3 px-4 font-mono font-medium text-slate-800 dark:text-slate-200">
-                    ₦{(Number(app.LoanAmount || app.loanAmount || 0) * 1000).toLocaleString()}
+                    ₦{formatNaira(app.LoanAmount || app.loanAmount)}
                   </td>
                   <td className="py-3 px-4">
                     <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">

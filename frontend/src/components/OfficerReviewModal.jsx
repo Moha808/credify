@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { db } from '../firebase/config';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { ShieldCheck, X, Loader2, CheckCircle, FileText, AlertCircle } from 'lucide-react';
 
 const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) => {
   if (!application) return null;
 
-  // Calculate default recommended amount in Naira based on application.LoanAmount (in thousands)
-  const defaultAmount = application.LoanAmount
-    ? Number(application.LoanAmount) * 1000
-    : 1000000;
+  // Smart normalization: if applicant entered full Naira (e.g. 200,000 or 10,000,000), use as-is; if in thousands (e.g. 1500), multiply by 1000
+  const rawLoan = Number(application.LoanAmount || application.loanAmount || 0);
+  const normalizedLoan = rawLoan > 50000 ? rawLoan : (rawLoan > 0 ? rawLoan * 1000 : 1000000);
 
-  const [recommendedAmount, setRecommendedAmount] = useState(defaultAmount);
+  const [recommendedAmount, setRecommendedAmount] = useState(normalizedLoan);
   const [interestRate, setInterestRate] = useState('14.5% per annum');
   const [tenure, setTenure] = useState(`${application.Loan_Amount_Term || 24} Months`);
   const [notes, setNotes] = useState(
@@ -26,32 +25,39 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
     setError('');
 
     try {
+      if (!application.id) {
+        throw new Error('Application ID is missing. Cannot update record.');
+      }
+
       const letterData = {
         letterId: `CRD-REC-${Math.floor(100000 + Math.random() * 900000)}`,
         date: new Date().toLocaleDateString('en-GB'),
-        applicantName: application.applicant,
-        officerName: officerName || 'Loan Officer',
-        recommendedAmount: Number(recommendedAmount),
-        interestRate: interestRate,
-        tenure: tenure,
-        notes: notes,
-        aiConfidence: application.confidence || 90.0,
-        status: 'Recommended'
+        applicantName: String(application.applicant || 'Applicant'),
+        officerName: String(officerName || 'Loan Officer'),
+        recommendedAmount: Number(recommendedAmount) || 0,
+        interestRate: String(interestRate || '14.5% per annum'),
+        tenure: String(tenure || '24 Months'),
+        notes: String(notes || 'Approved for loan facility disbursement based on verified risk profile.'),
+        aiConfidence: Number(application.confidence) || 90.0,
+        status: 'Recommended',
+        issuedAt: new Date().toISOString()
       };
 
-      const appRef = doc(db, 'applications', application.id);
-      await updateDoc(appRef, {
+      const appRef = doc(db, 'applications', String(application.id));
+
+      // Use setDoc with merge: true for maximum compatibility across Firestore rules and configurations
+      await setDoc(appRef, {
         officerAction: 'Recommended',
-        officerName: officerName || 'Loan Officer',
+        officerName: String(officerName || 'Loan Officer'),
         status: 'Approved',
         recommendationLetter: letterData
-      });
+      }, { merge: true });
 
       if (onUpdated) onUpdated();
       onClose();
     } catch (err) {
       console.error('Error updating recommendation letter:', err);
-      setError('Failed to issue letter. Please try again.');
+      setError(err?.message || 'Failed to issue letter. Please try again.');
       setSaving(false);
     }
   };
@@ -81,18 +87,18 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
               <p className="text-slate-500 dark:text-slate-400">Applicant</p>
-              <p className="font-semibold text-slate-800 dark:text-white mt-0.5">{application.applicant || 'N/A'}</p>
+              <p className="font-semibold text-slate-900 dark:text-white mt-0.5">{application.applicant || 'N/A'}</p>
             </div>
             <div>
               <p className="text-slate-500 dark:text-slate-400">Monthly Income</p>
-              <p className="font-semibold text-slate-800 dark:text-white mt-0.5">
+              <p className="font-semibold text-slate-900 dark:text-white mt-0.5">
                 ₦{Number(application.ApplicantIncome || 0).toLocaleString()}
               </p>
             </div>
             <div>
               <p className="text-slate-500 dark:text-slate-400">Requested Principal</p>
-              <p className="font-semibold text-slate-800 dark:text-white mt-0.5">
-                ₦{(Number(application.LoanAmount || 0) * 1000).toLocaleString()}
+              <p className="font-semibold text-slate-900 dark:text-white mt-0.5 font-mono">
+                ₦{normalizedLoan.toLocaleString()}
               </p>
             </div>
             <div>
@@ -106,7 +112,7 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
 
         {error && (
           <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
-            <AlertCircle size={15} />
+            <AlertCircle size={15} className="shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -121,7 +127,7 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
               <input
                 type="number"
                 required
-                min="10000"
+                min="1000"
                 value={recommendedAmount}
                 onChange={(e) => setRecommendedAmount(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"

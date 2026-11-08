@@ -4,12 +4,15 @@ import { ShieldCheck, Printer, X, Award, FileText, CheckCircle } from 'lucide-re
 const RecommendationLetterModal = ({ application, onClose }) => {
   if (!application) return null;
 
+  const rawLoan = Number(application.LoanAmount || application.loanAmount || 0);
+  const normalizedFallback = rawLoan > 50000 ? rawLoan : (rawLoan > 0 ? rawLoan * 1000 : 1500000);
+
   const letter = application.recommendationLetter || {
     letterId: `CRD-REC-${application.id ? application.id.substring(0, 6).toUpperCase() : '847291'}`,
     date: application.date || new Date().toLocaleDateString('en-GB'),
     applicantName: application.applicant || 'Valued Applicant',
     officerName: application.officerName || 'Senior Credit Underwriter',
-    recommendedAmount: application.LoanAmount ? `${Number(application.LoanAmount) * 1000}` : '1,500,000',
+    recommendedAmount: normalizedFallback,
     interestRate: '14.5% per annum',
     tenure: `${application.Loan_Amount_Term || 24} Months`,
     notes: 'Applicant demonstrates acceptable repayment capacity with verified income and stable credit history. Approved for disbursement subject to standard identity verification.',

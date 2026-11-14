@@ -32,25 +32,30 @@ const ApplicationForm = () => {
     const creditHistory = parseFloat(data.Credit_History) || 0.0;
     const totalIncome = appIncome + coappIncome;
 
-    let isApproved = false;
-    let confidence = 88.5;
+    let approvalRate = 50.0;
 
     if (creditHistory === 1.0 && totalIncome >= loanAmount * 8) {
-      isApproved = true;
-      // High liquidity and clean credit -> high confidence
+      // Strong credit and solid income -> high approval rate (80% - 96%)
       const ratioBonus = Math.min(10, Math.floor((totalIncome / (loanAmount * 8)) * 2));
-      confidence = Math.min(97.5, 89.0 + ratioBonus + Math.floor(Math.random() * 3));
+      approvalRate = Math.min(96.0, 84.0 + ratioBonus + Math.floor(Math.random() * 3));
     } else if (creditHistory === 0.0) {
-      isApproved = false;
-      confidence = Math.min(95.0, 87.0 + Math.floor(Math.random() * 5));
+      // Bad credit history -> heavily penalised, low approval rate (12% - 35%)
+      approvalRate = Math.max(12.0, 25.0 - Math.floor(Math.random() * 10));
     } else {
-      isApproved = totalIncome >= loanAmount * 12;
-      confidence = 82.0 + Math.floor(Math.random() * 6);
+      // Borderline cases
+      if (totalIncome >= loanAmount * 10) {
+        approvalRate = 65.0 + Math.floor(Math.random() * 10);
+      } else {
+        approvalRate = 38.0 + Math.floor(Math.random() * 8);
+      }
     }
+
+    // Supervisor benchmark: >= 50% = Accepted (Approved), < 50% = Declined (Rejected)
+    const isApproved = approvalRate >= 50.0;
 
     return {
       status: isApproved ? 'Approved' : 'Rejected',
-      confidence: parseFloat(confidence.toFixed(1))
+      confidence: parseFloat(approvalRate.toFixed(1))
     };
   };
 
@@ -115,7 +120,7 @@ const ApplicationForm = () => {
           recipientRole: 'officer',
           type: 'new_application',
           title: 'New Loan Request Awaiting Review',
-          message: `${currentUser.name} submitted an application for ₦${displayLoan.toLocaleString()} (AI Status: ${status}, ${confidence}% confidence).`,
+          message: `${currentUser.name} submitted an application for ₦${displayLoan.toLocaleString()} (AI Result: ${confidence >= 50 ? 'Loan Accepted' : 'Loan Declined'}, ${confidence}% rate).`,
           applicationId: docRef.id,
           applicantName: currentUser.name,
           applicantId: currentUser.uid,
@@ -362,25 +367,31 @@ const ApplicationForm = () => {
               )}
               
               <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">
-                {result === 'approved' ? 'AI Recommendation: Approved' : 'AI Recommendation: High Risk'}
+                {result === 'approved' ? 'AI Evaluation: Loan Accepted' : 'AI Evaluation: Loan Declined'}
               </h2>
               
               <p className="text-slate-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
                 {result === 'approved' 
-                  ? 'Your financial profile matches our underwriting criteria! Your application has been logged and forwarded to the Loan Officer desk to generate your Official Recommendation Letter.' 
-                  : 'Based on the debt-to-income and credit parameters provided, our model predicts an elevated probability of default. Consider applying for a lower amount or improving your credit rating.'}
+                  ? 'Your financial profile meets our approval benchmark (≥ 50% threshold). Your application has been logged and forwarded to the Loan Officer desk to generate your Official Recommendation Letter.' 
+                  : 'Based on the evaluation criteria, the calculated approval score fell below the 50% acceptance benchmark. Consider improving your credit track record or applying with a higher co-applicant income.'}
               </p>
 
-              {result === 'approved' && (
-                <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                    Model Confidence Score
+                    Calculated Approval Rate
                   </span>
-                  <span className="text-base font-bold text-green-600 dark:text-green-400">
+                  <span className={`text-base font-bold ${result === 'approved' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {confidenceScore}%
                   </span>
                 </div>
-              )}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700/60 text-xs">
+                  <span className="text-slate-500 dark:text-slate-400">Benchmark Decision</span>
+                  <span className={`font-semibold px-2 py-0.5 rounded ${result === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'}`}>
+                    {result === 'approved' ? 'Loan Accepted (≥ 50%)' : 'Loan Declined (< 50%)'}
+                  </span>
+                </div>
+              </div>
 
               <button 
                 onClick={closeModal}

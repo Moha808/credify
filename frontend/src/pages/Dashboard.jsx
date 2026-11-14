@@ -113,16 +113,21 @@ const ApplicantDashboard = ({ currentUser, applications, loading }) => {
                 <div className="flex items-center gap-3">
                   {app.confidence && (
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                      {app.confidence}% AI Confidence
+                      {app.confidence}% Rate
                     </span>
                   )}
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
-                    ${app.status === 'Approved'
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
-                    {app.status === 'Approved' ? <CheckCircle size={11} /> : <XCircle size={11} />}
-                    {app.status}
-                  </span>
+                  {(() => {
+                    const isAccepted = app.confidence ? Number(app.confidence) >= 50 : app.status === 'Approved';
+                    return (
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
+                        ${isAccepted
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
+                        {isAccepted ? <CheckCircle size={11} /> : <XCircle size={11} />}
+                        {isAccepted ? 'Accepted' : 'Declined'}
+                      </span>
+                    );
+                  })()}
                   
                   {/* Official Recommendation Letter Button */}
                   {app.recommendationLetter ? (
@@ -133,7 +138,7 @@ const ApplicantDashboard = ({ currentUser, applications, loading }) => {
                     >
                       <Download size={13} /> Download Letter
                     </button>
-                  ) : app.status === 'Approved' ? (
+                  ) : (app.confidence ? Number(app.confidence) >= 50 : app.status === 'Approved') ? (
                     <span className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">
                       <Clock size={11} /> Underwriting in progress
                     </span>
@@ -310,13 +315,18 @@ const OfficerDashboard = ({ currentUser, applications, loading }) => {
                       </span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                        ${app.status === 'Approved'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
-                        {app.status === 'Approved' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                        {app.status}
-                      </span>
+                      {(() => {
+                        const isAccepted = app.confidence ? Number(app.confidence) >= 50 : app.status === 'Approved';
+                        return (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                            ${isAccepted
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
+                            {isAccepted ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                            {isAccepted ? 'Accepted' : 'Declined'}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-3 px-3">
                       {app.recommendationLetter ? (

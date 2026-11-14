@@ -298,14 +298,19 @@ const AdminPanel = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                      ${app.status === 'Approved'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                      }`}>
-                      {app.status === 'Approved' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                      {app.status}
-                    </span>
+                    {(() => {
+                      const isAccepted = app.confidence ? Number(app.confidence) >= 50 : app.status === 'Approved';
+                      return (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                          ${isAccepted
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                          }`}>
+                          {isAccepted ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                          {isAccepted ? 'Accepted' : 'Declined'}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="py-3 px-4 text-slate-500">{app.date || 'N/A'}</td>
                   <td className="py-3 px-4">

@@ -157,14 +157,19 @@ const History = () => {
                     </td>
                     <td className="py-3 px-4 text-slate-500">{app.date || 'N/A'}</td>
                     <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
-                        ${app.status === 'Approved'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                        }`}>
-                        {app.status === 'Approved' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                        {app.status}
-                      </span>
+                      {(() => {
+                        const isAccepted = app.confidence ? Number(app.confidence) >= 50 : app.status === 'Approved';
+                        return (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+                            ${isAccepted
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                            }`}>
+                            {isAccepted ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                            {isAccepted ? 'Accepted' : 'Declined'}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
@@ -247,8 +252,16 @@ const History = () => {
                   <p className="font-medium text-slate-900 dark:text-white mt-0.5">{selectedApp.Property_Area || 'Urban'}</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-[11px] text-slate-400 uppercase">AI Confidence Score</p>
-                  <p className="font-mono font-bold text-blue-600 dark:text-blue-400 mt-0.5">{selectedApp.confidence || 'N/A'}%</p>
+                  <p className="text-[11px] text-slate-400 uppercase">AI Evaluation</p>
+                  <p className={`font-semibold text-xs mt-1 ${
+                    (selectedApp.confidence ? Number(selectedApp.confidence) >= 50 : selectedApp.status === 'Approved')
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {(selectedApp.confidence ? Number(selectedApp.confidence) >= 50 : selectedApp.status === 'Approved')
+                      ? 'Loan Accepted'
+                      : 'Loan Declined'} ({selectedApp.confidence || 'N/A'}%)
+                  </p>
                 </div>
               </div>
             </div>

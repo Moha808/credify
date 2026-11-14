@@ -93,16 +93,24 @@ def predict():
         prediction_num = model.predict(features)[0]
         prediction_prob = model.predict_proba(features)[0]
         
-        # prediction_num is 1 for Approved, 0 for Rejected
-        status = "Approved" if prediction_num == 1 else "Rejected"
+        # prediction_prob has probabilities for [class 0 (Rejected), class 1 (Approved)]
+        # approval_probability is the predicted likelihood of loan approval (0 to 100%)
+        # Determine approval rate / probability for Class 1 (Approved)
+        approval_rate = float(prediction_prob[1]) * 100
         
-        # Get the probability of the predicted class
-        confidence = float(np.max(prediction_prob)) * 100
+        # Benchmark Rule: >= 50% -> Accepted, < 50% -> Declined
+        if approval_rate >= 50.0:
+            status = "Approved"
+        else:
+            status = "Rejected"
+            
+        confidence = round(approval_rate, 2)
 
         # Return the result back to React
         return jsonify({
             "status": status,
-            "confidence": round(confidence, 2)
+            "confidence": confidence,
+            "approval_rate": confidence
         }), 200
 
     except Exception as e:

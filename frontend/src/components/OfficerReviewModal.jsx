@@ -134,9 +134,9 @@ const OfficerReviewModal = ({ application, officerName, onClose, onUpdated }) =>
               </p>
             </div>
             <div>
-              <p className="text-slate-500 dark:text-slate-400">AI Confidence</p>
-              <p className="font-semibold text-green-600 dark:text-green-400 mt-0.5">
-                {application.confidence || 'N/A'}%
+              <p className="text-slate-500 dark:text-slate-400">AI Evaluation</p>
+              <p className={`font-semibold mt-0.5 ${(application.confidence ? Number(application.confidence) >= 50 : application.status === 'Approved') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {(application.confidence ? Number(application.confidence) >= 50 : application.status === 'Approved') ? 'Accepted' : 'Declined'} ({application.confidence || 'N/A'}%)
               </p>
             </div>
           </div>
